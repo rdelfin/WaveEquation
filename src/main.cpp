@@ -1,3 +1,7 @@
+//
+// Created by Ricardo Delfin on 10/14/16.
+//
+
 /*
  * Main method for the wave equation simulation.
  */
