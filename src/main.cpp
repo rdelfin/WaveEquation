@@ -23,12 +23,10 @@
 static const char* vertex_shader =
 R"zzz(#version 330 core
 in vec4 vertex_position;
-in vec4 vertex_normal;
 uniform mat4 view;
 uniform mat4 projection;
 uniform vec4 light_position;
 out vec4 light_direction;
-out vec4 normal;
 void main()
 {
     // Transform vertex into clipping coordinates
@@ -37,13 +35,11 @@ void main()
     //  Compute light direction and transform to camera coordinates
     //        light_direction = view * (light_position - vertex_position);
     //  Transform normal to camera coordinates
-    normal = view * vertex_normal;
 }
 )zzz";
 
 static const char* fragment_shader =
 R"zzz(#version 330 core
-in vec4 normal;
 in vec4 light_direction;
 out vec4 fragment_color;
 void main()
@@ -57,7 +53,7 @@ void main()
 )zzz";
 
 // VBO and VAO descriptors.
-enum { kVertexBuffer, kNormalBuffer, kIndexBuffer, kNumVbos };
+enum { kVertexBuffer, kIndexBuffer, kNumVbos };
 
 // These are our VAOs.
 enum { kGeometryVao, kNumVaos };
@@ -67,8 +63,7 @@ GLuint g_buffer_objects[kNumVaos][kNumVbos];  // These will store VBO descriptor
 
 
 std::vector<glm::vec4> obj_vertices;
-std::vector<glm::vec4> vtx_normals;
-std::vector<glm::uvec3> obj_faces;
+std::vector<glm::uvec2> obj_faces;
 
 void
 ErrorCallback(int error, const char* description)
@@ -108,12 +103,11 @@ int main() {
      *============================= Generate geometry ===================================
      *===================================================================================*/
     obj_vertices.push_back(glm::vec4(-1, -0.5, -1, 1));
-    vtx_normals.push_back(glm::vec4(0, 0, 1, 0));
     obj_vertices.push_back(glm::vec4(1, 0, -1, 1));
-    vtx_normals.push_back(glm::vec4(0, 0, 1, 0));
     obj_vertices.push_back(glm::vec4(0, 1, -1, 1));
-    vtx_normals.push_back(glm::vec4(0, 0, 1, 0));
-    obj_faces.push_back(glm::uvec3(1, 2, 3));
+    obj_faces.push_back(glm::uvec2(0, 1));
+    obj_faces.push_back(glm::uvec2(1, 2));
+    obj_faces.push_back(glm::uvec2(2, 0));
 
     /*===================================================================================
      *============================ GLM LOADING VBO AND VAO ==============================
@@ -127,15 +121,11 @@ int main() {
                                 GL_STATIC_DRAW));
     CHECK_GL_ERROR(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0));
     CHECK_GL_ERROR(glEnableVertexAttribArray(0));
-    CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER, g_buffer_objects[kGeometryVao][kNormalBuffer]));
-    CHECK_GL_ERROR(glBufferData(GL_ARRAY_BUFFER,
-                                sizeof(float) * vtx_normals.size() * 4, nullptr,
-                                GL_STATIC_DRAW));
     CHECK_GL_ERROR(glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0));
     CHECK_GL_ERROR(glEnableVertexAttribArray(1));
     CHECK_GL_ERROR(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_buffer_objects[kGeometryVao][kIndexBuffer]));
     CHECK_GL_ERROR(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                                sizeof(uint32_t) * obj_faces.size() * 3,
+                                sizeof(uint32_t) * obj_faces.size() * 2,
                                 &obj_faces[0], GL_STATIC_DRAW));
 
 
@@ -169,11 +159,6 @@ int main() {
     // NOTE: We do not send anything right now, we just describe it to OpenGL.
     CHECK_GL_ERROR(glBufferData(GL_ARRAY_BUFFER,
                                 sizeof(float) * obj_vertices.size() * 4, nullptr,
-                                GL_STATIC_DRAW));
-    CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER, g_buffer_objects[kGeometryVao][kNormalBuffer]));
-    // NOTE: We do not send anything right now, we just describe it to OpenGL.
-    CHECK_GL_ERROR(glBufferData(GL_ARRAY_BUFFER,
-                                sizeof(float) * vtx_normals.size() * 4, nullptr,
                                 GL_STATIC_DRAW));
     // Bind attributes.
     CHECK_GL_ERROR(glBindAttribLocation(program_id, 0, "vertex_position"));
@@ -227,11 +212,6 @@ int main() {
         CHECK_GL_ERROR(glBufferData(GL_ARRAY_BUFFER,
                                     sizeof(float) * obj_vertices.size() * 4,
                                     &obj_vertices[0], GL_STATIC_DRAW));
-        CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER,
-                                    g_buffer_objects[kGeometryVao][kNormalBuffer]));
-        CHECK_GL_ERROR(glBufferData(GL_ARRAY_BUFFER,
-                                    sizeof(float) * vtx_normals.size() * 4,
-                                    &vtx_normals[0], GL_STATIC_DRAW));
         // Use our program.
         CHECK_GL_ERROR(glUseProgram(program_id));
 
@@ -242,7 +222,7 @@ int main() {
                                           &view_matrix[0][0]));
         CHECK_GL_ERROR(glUniform4fv(light_position_location, 1, &light_position[0]));
 
-        CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, obj_faces.size() * 3, GL_UNSIGNED_INT, 0));
+        CHECK_GL_ERROR(glDrawElements(GL_LINES, obj_faces.size() * 2, GL_UNSIGNED_INT, 0));
 
 
 
