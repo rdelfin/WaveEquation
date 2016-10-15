@@ -9,7 +9,7 @@
 #include <glm/glm.hpp>
 
 /**
- * This class represents a field that satisfied the wave equation ∂f/∂t = v^2 ∂f/∂x
+ * This class represents a field that satisfied the wave equation ∂^2f/∂^2t = v^2 (∂^2f/∂^2x + ∂^2f/∂^2y)
  * It contains an array of discrete points on the field.
  */
 class Field {
@@ -23,9 +23,9 @@ public:
     ~Field();
 
 private:
-    std::vector<std::vector<double>> data;
+    std::vector<std::vector<double>> val, valSpeed;
     glm::vec2 min, max;
-    double speed;
+    double speed, step;
 };
 
 
