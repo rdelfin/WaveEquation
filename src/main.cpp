@@ -17,8 +17,8 @@
 #include <GLFW/glfw3.h>
 #include <debuggl.h>
 
-#define SCREEN_WIDTH 2000
-#define SCREEN_HEIGHT 1000
+#define SCREEN_WIDTH 1000
+#define SCREEN_HEIGHT 780
 
 static const char* vertex_shader =
 R"zzz(#version 330 core
@@ -29,19 +29,15 @@ uniform mat4 projection;
 uniform vec4 light_position;
 out vec4 light_direction;
 out vec4 normal;
-out vec4 world_normal;
-out vec4 world_position;
 void main()
 {
-// Transform vertex into clipping coordinates
-	world_position =  vertex_position;
-    gl_Position = projection * view * world_position;
-// Lighting in camera coordinates
-//  Compute light direction and transform to camera coordinates
-//        light_direction = view * (light_position - vertex_position);
-//  Transform normal to camera coordinates
-        normal = view * vertex_normal;
-        world_normal = vertex_normal;
+    // Transform vertex into clipping coordinates
+    gl_Position = projection * view * vertex_position;
+    // Lighting in camera coordinates
+    //  Compute light direction and transform to camera coordinates
+    //        light_direction = view * (light_position - vertex_position);
+    //  Transform normal to camera coordinates
+    normal = view * vertex_normal;
 }
 )zzz";
 
@@ -49,14 +45,13 @@ static const char* fragment_shader =
 R"zzz(#version 330 core
 in vec4 normal;
 in vec4 light_direction;
-in vec4 world_normal;
 out vec4 fragment_color;
 void main()
 {
-    vec4 color = vec4(1.0*world_normal.x, 1.0*world_normal.y, 1.0*world_normal.z, 1.0);
-//    float dot_nl = dot(normalize(light_direction), normalize(normal));
-//    dot_nl = clamp(dot_nl, 0.0, 1.0);
-//    fragment_color = clamp(dot_nl * color, 0.0, 1.0);
+    vec4 color = vec4(1.0, 0.0, 0.0, 1.0);
+//  float dot_nl = dot(normalize(light_direction), normalize(normal));
+//  dot_nl = clamp(dot_nl, 0.0, 1.0);
+//  fragment_color = clamp(dot_nl * color, 0.0, 1.0);
     fragment_color = color;
 }
 )zzz";
@@ -75,13 +70,19 @@ std::vector<glm::vec4> obj_vertices;
 std::vector<glm::vec4> vtx_normals;
 std::vector<glm::uvec3> obj_faces;
 
+void
+ErrorCallback(int error, const char* description)
+{
+    std::cerr << "GLFW Error: " << description << "\n";
+}
+
 int main() {
     /*===================================================================================
      *============================ GLFW Initialization ==================================
      *===================================================================================*/
     /* Initialize library */
-    if(!glfwInit())
-        return -1;
+    if(!glfwInit()) exit(EXIT_FAILURE);
+    glfwSetErrorCallback(ErrorCallback);
 
     /* Send hints to the window */
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -91,6 +92,10 @@ int main() {
 
     // Generate window, set swap interval, and print info about screen
     GLFWwindow* window  = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Window 1", NULL, NULL);
+    CHECK_SUCCESS(window != nullptr);
+    glfwMakeContextCurrent(window);
+    glewExperimental = GL_TRUE;
+    CHECK_SUCCESS(glewInit() == GLEW_OK);
     glGetError();  // clear GLEW's error for it
     glfwSwapInterval(1);
     const GLubyte* renderer = glGetString(GL_RENDERER);  // get renderer string
@@ -99,26 +104,15 @@ int main() {
     std::cout << "OpenGL version supported:" << version << "\n";
 
 
-    if(!window)
-    {
-        glfwTerminate();
-        return -1;
-    }
-
-    glfwMakeContextCurrent(window);
-
-    CHECK_SUCCESS(glewInit() == GLEW_OK);
-
-
     /*===================================================================================
      *============================= Generate geometry ===================================
      *===================================================================================*/
-    obj_vertices.push_back(glm::vec4(-1, 0, 0, 1));
-    vtx_normals.push_back(glm::vec4(0, 0, 1, 1));
-    obj_vertices.push_back(glm::vec4(1, 0, 0, 1));
-    vtx_normals.push_back(glm::vec4(0, 0, 1, 1));
-    obj_vertices.push_back(glm::vec4(0, 1, 0, 1));
-    vtx_normals.push_back(glm::vec4(0, 0, 1, 1));
+    obj_vertices.push_back(glm::vec4(-1, -0.5, -1, 1));
+    vtx_normals.push_back(glm::vec4(0, 0, 1, 0));
+    obj_vertices.push_back(glm::vec4(1, 0, -1, 1));
+    vtx_normals.push_back(glm::vec4(0, 0, 1, 0));
+    obj_vertices.push_back(glm::vec4(0, 1, -1, 1));
+    vtx_normals.push_back(glm::vec4(0, 0, 1, 0));
     obj_faces.push_back(glm::uvec3(1, 2, 3));
 
     /*===================================================================================
@@ -225,7 +219,7 @@ int main() {
                 glm::perspective(glm::radians(45.0f), aspect, 0.0001f, 1000.0f);
 
 
-        glm::mat4 view_matrix(1.0f);
+        glm::mat4 view_matrix = glm::lookAt(glm::vec3(0, 0, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
         // Send vertices to the GPU.
         CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER,
@@ -248,7 +242,6 @@ int main() {
                                           &view_matrix[0][0]));
         CHECK_GL_ERROR(glUniform4fv(light_position_location, 1, &light_position[0]));
 
-        // Draw our triangles.
         CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, obj_faces.size() * 3, GL_UNSIGNED_INT, 0));
 
 
