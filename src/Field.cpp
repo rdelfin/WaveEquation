@@ -4,10 +4,10 @@
 
 #include "Field.h"
 
-Field::Field(glm::vec2 min, glm::vec2 max, double step, double speed)
+Field::Field(glm::dvec2 min, glm::dvec2 max, double step, double speed)
     : speed(speed), step(step) {
-    glm::vec2 diff = max - min;
-    glm::uvec2 totalSteps = glm::uvec2(diff.x / steps, diff.y / steps);
+    glm::dvec2 diff = max - min;
+    glm::uvec2 totalSteps = glm::uvec2(diff.x / step, diff.y / step);
     val = std::vector<std::vector<double>>(totalSteps.x);
     valSpeed = std::vector<std::vector<double>>(totalSteps.x);
     for(int i = 0; i < totalSteps.x; i++) {
@@ -20,11 +20,11 @@ Field::Field(glm::vec2 min, glm::vec2 max, double step, double speed)
     }
 
     this->min = min;
-    this->max = min + step*totalSteps;
+    this->max = min + step*glm::dvec2(totalSteps.x, totalSteps.y);
 }
 
 void Field::setField(std::vector<std::vector<double>> f0) {
-    data = f0;
+    val = f0;
 }
 
 /* Computes the position of every pixel based on the wave equation */
@@ -52,12 +52,12 @@ const std::vector<std::vector<double>>& Field::update(double dt) {
         }
     }
 
-    data = newVals;
+    val = newVals;
 
-    return data;
+    return val;
 }
 
-glm::vec2 Field::getMin() {
+glm::dvec2 Field::getMin() {
     return min;
 }
 

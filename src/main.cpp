@@ -106,12 +106,19 @@ int main() {
     /*===================================================================================
      *============================= Generate geometry ===================================
      *===================================================================================*/
-    obj_vertices.push_back(glm::vec4(-1, -0.5, -1, 1));
-    obj_vertices.push_back(glm::vec4(1, 0, -1, 1));
-    obj_vertices.push_back(glm::vec4(0, 1, -1, 1));
-    obj_faces.push_back(glm::uvec2(0, 1));
-    obj_faces.push_back(glm::uvec2(1, 2));
-    obj_faces.push_back(glm::uvec2(2, 0));
+    int idx = 0;
+    for(int i = 0; i < 50; i++) {
+        for (int j = 0; j < 50; j++) {
+            obj_vertices.push_back(glm::vec4((i - 25) * 0.1, -1, (j - 25) * 0.1, 1));
+
+            if(j < 49)
+                obj_faces.push_back(glm::uvec2(idx, idx+1));
+            if(i < 49)
+                obj_faces.push_back(glm::uvec2(idx, idx+50));
+
+            idx++;
+        }
+    }
 
     /*===================================================================================
      *============================ GLM LOADING VBO AND VAO ==============================
@@ -208,7 +215,7 @@ int main() {
                 glm::perspective(glm::radians(45.0f), aspect, 0.0001f, 1000.0f);
 
 
-        glm::mat4 view_matrix = glm::lookAt(glm::vec3(0, 0, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+        glm::mat4 view_matrix = glm::lookAt(glm::vec3(0, 3, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
         // Send vertices to the GPU.
         CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER,

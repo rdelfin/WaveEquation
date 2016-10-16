@@ -14,19 +14,19 @@
  */
 class Field {
 public:
-    Field(glm::vec2 min, glm::vec2 max, double step, double speed);
+    Field(glm::dvec2 min, glm::dvec2 max, double step, double speed);
 
     void setField(std::vector<std::vector<double>> f0);
 
     const std::vector<std::vector<double>>& update(double dt);
-    glm::vec2 getMin();
+    glm::dvec2 getMin();
     double getStep();
 
     ~Field();
 
 private:
     std::vector<std::vector<double>> val, valSpeed;
-    glm::vec2 min, max;
+    glm::dvec2 min, max;
     double speed, step;
 };
 
