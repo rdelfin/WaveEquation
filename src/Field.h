@@ -18,7 +18,9 @@ public:
 
     void setField(std::vector<std::vector<double>> f0);
 
-    void update(double dt);
+    const std::vector<std::vector<double>>& update(double dt);
+    glm::vec2 getMin();
+    double getStep();
 
     ~Field();
 

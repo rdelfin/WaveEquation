@@ -24,9 +24,10 @@ void Field::setField(std::vector<std::vector<double>> f0) {
 }
 
 /* Computes the position of every pixel based on the wave equation */
-void Field::update(double dt) {
-    std::vector<std::vector<double>> newVals;
+const std::vector<std::vector<double>>& Field::update(double dt) {
+    std::vector<std::vector<double>> newVals(val.size());
     for(int i = 0; i < val.size(); i++) {
+        newVals[i] = std::vector<double>(val[i].size());
         for (int j = 0; j < val[i].size(); j++) {
             if(i == 0 || j == 0 || i == val.size() - 1 || j == val.size() - 1) {
                 val[i][j] = 0;
@@ -42,12 +43,22 @@ void Field::update(double dt) {
                 double d2fdt2 = speed * (d2fdy2 + d2fdx2);
 
                 valSpeed[i][j] += d2fdt2 * dt;
-                val[i][j] += valSpeed[i][j] * dt;
+                newVals[i][j] += valSpeed[i][j] * dt;
             }
         }
     }
 
     data = newVals;
+
+    return data;
+}
+
+glm::vec2 Field::getMin() {
+    return min;
+}
+
+double Field::getStep() {
+    return step;
 }
 
 Field::~Field() {
