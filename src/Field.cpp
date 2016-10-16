@@ -9,10 +9,14 @@ Field::Field(glm::vec2 min, glm::vec2 max, double step, double speed)
     glm::vec2 diff = max - min;
     glm::uvec2 totalSteps = glm::uvec2(diff.x / steps, diff.y / steps);
     val = std::vector<std::vector<double>>(totalSteps.x);
+    valSpeed = std::vector<std::vector<double>>(totalSteps.x);
     for(int i = 0; i < totalSteps.x; i++) {
         val[i] = std::vector<double>(totalSteps.y);
-        for(int j = 0; j < totalSteps.y; j++)
+        valSpeed[i] = std::vector<double>(totalSteps.y);
+        for(int j = 0; j < totalSteps.y; j++) {
             val[i][j] = 0;
+            valSpeed[i][j] = 0;
+        }
     }
 
     this->min = min;
