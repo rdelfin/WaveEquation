@@ -20,6 +20,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <debuggl.h>
+#include "../include/Field.h"
 
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 780
@@ -106,10 +107,17 @@ int main() {
     /*===================================================================================
      *============================= Generate geometry ===================================
      *===================================================================================*/
+    Field field(glm::dvec2(-2.5, -2.5), glm::dvec2(2.5, 2.5), 0.1, 0.1);
+    std::vector<std::vector<double>> map(50);
+    for(unsigned long i = 0; i < map.size(); i++)
+        map[i] = std::vector<double>(50);
+    map[25][25] = 1;
+    field.setField(map);
+
     int idx = 0;
     for(int i = 0; i < 50; i++) {
         for (int j = 0; j < 50; j++) {
-            obj_vertices.push_back(glm::vec4((i - 25) * 0.1, -1, (j - 25) * 0.1, 1));
+            obj_vertices.push_back(glm::vec4((i - 25) * 0.1, -1 + map[i][j], (j - 25) * 0.1, 1));
 
             if(j < 49)
                 obj_faces.push_back(glm::uvec2(idx, idx+1));
@@ -119,7 +127,6 @@ int main() {
             idx++;
         }
     }
-
     /*===================================================================================
      *============================ GLM LOADING VBO AND VAO ==============================
      *===================================================================================*/
@@ -194,7 +201,20 @@ int main() {
     float aspect = 0.0f;
     float theta = 0.0f;
 
+    glfwSetTime(0);
+
     while(!glfwWindowShouldClose(window)) {
+
+        double frameTime = glfwGetTime();
+        glfwSetTime(0.0);
+
+        std::vector<std::vector<double>> data = field.update(frameTime);
+
+        obj_vertices.clear();
+        for(int i = 0; i < 50; i++)
+            for (int j = 0; j < 50; j++)
+                obj_vertices.push_back(glm::vec4((i - 25) * 0.1, -1 + data[i][j], (j - 25) * 0.1, 1));
+
         // Setup some basic window stuff.
         int screenW, screenH;
         glfwGetFramebufferSize(window, &screenW, &screenH);
@@ -234,9 +254,6 @@ int main() {
         CHECK_GL_ERROR(glUniform4fv(light_position_location, 1, &light_position[0]));
 
         CHECK_GL_ERROR(glDrawElements(GL_LINES, obj_faces.size() * 2, GL_UNSIGNED_INT, 0));
-
-
-
 
         glfwSwapBuffers(window);
 

@@ -2,6 +2,7 @@
 // Created by Ricardo Delfin on 10/15/16.
 //
 
+#include <iostream>
 #include "Field.h"
 
 Field::Field(glm::dvec2 min, glm::dvec2 max, double step, double speed)
@@ -34,11 +35,11 @@ const std::vector<std::vector<double>>& Field::update(double dt) {
         newVals[i] = std::vector<double>(val[i].size());
         for (int j = 0; j < val[i].size(); j++) {
             if(i == 0 || j == 0 || i == val.size() - 1 || j == val.size() - 1) {
-                val[i][j] = 0;
+                newVals[i][j] = 0;
             } else {
                 double dfdxRight = (val[i + 1][j] - val[i][j]) / step;
                 double dfdxLeft = (val[i][j] - val[i - 1][j]) / step;
-                double d2fdx2 = (dfdxRight - dfdxRight) / step;
+                double d2fdx2 = (dfdxRight - dfdxLeft) / step;
 
                 double dfdyUp = (val[i][j + 1] - val[i][j]) / step;
                 double dfdyDown = (val[i][j] - val[i][j - 1]) / step;
@@ -47,7 +48,7 @@ const std::vector<std::vector<double>>& Field::update(double dt) {
                 double d2fdt2 = speed * (d2fdy2 + d2fdx2);
 
                 valSpeed[i][j] += d2fdt2 * dt;
-                newVals[i][j] += valSpeed[i][j] * dt;
+                newVals[i][j] = val[i][j] + valSpeed[i][j] * dt;
             }
         }
     }
