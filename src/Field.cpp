@@ -11,10 +11,10 @@ Field::Field(glm::dvec2 min, glm::dvec2 max, double step, double speed)
     glm::uvec2 totalSteps = glm::uvec2(diff.x / step, diff.y / step);
     val = std::vector<std::vector<double>>(totalSteps.x);
     valSpeed = std::vector<std::vector<double>>(totalSteps.x);
-    for(int i = 0; i < totalSteps.x; i++) {
+    for(unsigned long i = 0; i < totalSteps.x; i++) {
         val[i] = std::vector<double>(totalSteps.y);
         valSpeed[i] = std::vector<double>(totalSteps.y);
-        for(int j = 0; j < totalSteps.y; j++) {
+        for(unsigned long j = 0; j < totalSteps.y; j++) {
             val[i][j] = 0;
             valSpeed[i][j] = 0;
         }
@@ -29,11 +29,11 @@ void Field::setField(std::vector<std::vector<double>> f0) {
 }
 
 /* Computes the position of every pixel based on the wave equation */
-const std::vector<std::vector<double>>& Field::update(double dt) {
+void Field::update(double dt) {
     std::vector<std::vector<double>> newVals(val.size());
-    for(int i = 0; i < val.size(); i++) {
+    for(unsigned long i = 0; i < val.size(); i++) {
         newVals[i] = std::vector<double>(val[i].size());
-        for (int j = 0; j < val[i].size(); j++) {
+        for (unsigned long j = 0; j < val[i].size(); j++) {
             if(i == 0 || j == 0 || i == val.size() - 1 || j == val.size() - 1) {
                 newVals[i][j] = 0;
             } else {
@@ -54,8 +54,39 @@ const std::vector<std::vector<double>>& Field::update(double dt) {
     }
 
     val = newVals;
+}
 
-    return val;
+
+double Field::getValAt(glm::dvec2 v) {
+
+    if(v.x < min.x || v.y < min.y || v.x > max.x || v.y > max.y) {
+        return 0;
+    }
+
+    glm::dvec2 scaledPos = (v - min) / step;
+
+    double bottomLeft = getAtIndex(glm::uvec2((int) scaledPos.x, (int) scaledPos.y));
+    double topLeft = getAtIndex(glm::uvec2((int) scaledPos.x, (int) scaledPos.y + 1));
+    double bottomRight = getAtIndex(glm::uvec2((int) scaledPos.x + 1, (int) scaledPos.y));
+    double topRight = getAtIndex(glm::uvec2((int) scaledPos.x + 1, (int) scaledPos.y + 1));
+
+    double leftDiff = scaledPos.x - (int)scaledPos.x;
+    double rightDiff = ((int)scaledPos.x + 1) - scaledPos.x;
+    double bottomDiff = scaledPos.y - (int)scaledPos.y;
+    double topDiff = ((int)scaledPos.y + 1) - scaledPos.y;
+
+    double topAvg = rightDiff*topRight + leftDiff*topLeft;
+    double bottomAvg = rightDiff*bottomRight + leftDiff*bottomLeft;
+
+    return topDiff*topAvg + bottomDiff*bottomAvg;
+}
+
+double Field::getAtIndex(glm::uvec2 v) {
+    if(v.x < 0 || v.y < 0 || v.x > val.size() || v.y > val[0].size()) {
+        return 0;
+    }
+
+    return val[v.x][v.y];
 }
 
 glm::dvec2 Field::getMin() {

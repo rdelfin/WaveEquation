@@ -18,9 +18,11 @@ public:
 
     void setField(std::vector<std::vector<double>> f0);
 
-    const std::vector<std::vector<double>>& update(double dt);
+    void update(double dt);
     glm::dvec2 getMin();
     double getStep();
+
+    double getValAt(glm::dvec2 v);
 
     ~Field();
 
@@ -28,6 +30,8 @@ private:
     std::vector<std::vector<double>> val, valSpeed;
     glm::dvec2 min, max;
     double speed, step;
+
+    double getAtIndex(glm::uvec2 v);
 };
 
 

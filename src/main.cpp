@@ -107,11 +107,24 @@ int main() {
     /*===================================================================================
      *============================= Generate geometry ===================================
      *===================================================================================*/
-    Field field(glm::dvec2(-2.5, -2.5), glm::dvec2(2.5, 2.5), 0.1, 0.1);
+    Field field(glm::dvec2(-2.5, -2.5), glm::dvec2(2.5, 2.5), 0.1, 0.2);
     std::vector<std::vector<double>> map(50);
     for(unsigned long i = 0; i < map.size(); i++)
         map[i] = std::vector<double>(50);
-    map[25][25] = 1;
+    int x = 0, y = 0;
+
+    for(int i = 24; i <= 26; i++)
+        for(int j = 24; j <= 26; j++)
+            map[i][j] = 2;
+    /*map[24+x][240+y] = 1;
+    map[24+x][250+y] = 1;
+    map[24+x][260+y] = 1;
+    map[25+x][240+y] = 1;
+    map[25+x][250+y] = 1;
+    map[25+x][260+y] = 1;
+    map[26+x][24+y] = 1;
+    map[26+x][25+y] = 1;
+    map[26+x][26+y] = 1;*/
     field.setField(map);
 
     int idx = 0;
@@ -208,12 +221,15 @@ int main() {
         double frameTime = glfwGetTime();
         glfwSetTime(0.0);
 
-        std::vector<std::vector<double>> data = field.update(frameTime);
+        field.update(frameTime);
 
         obj_vertices.clear();
-        for(int i = 0; i < 50; i++)
-            for (int j = 0; j < 50; j++)
-                obj_vertices.push_back(glm::vec4((i - 25) * 0.1, -1 + data[i][j], (j - 25) * 0.1, 1));
+        for(int i = 0; i < 50; i++) {
+            for (int j = 0; j < 50; j++) {
+                double fxt = field.getValAt(glm::dvec2(-2.5 + (i-1)*0.1, -2.5 + (j-1)*0.1));
+                obj_vertices.push_back(glm::vec4((i - 25) * 0.1, -1 + fxt, (j - 25) * 0.1, 1));
+            }
+        }
 
         // Setup some basic window stuff.
         int screenW, screenH;
