@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.2)
 project(WaveEquation)
 
 FILE(GLOB cmakes ${CMAKE_SOURCE_DIR}/cmake/*.cmake)
