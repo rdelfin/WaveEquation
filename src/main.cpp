@@ -115,7 +115,7 @@ int main() {
 
     for(int i = 24; i <= 26; i++)
         for(int j = 24; j <= 26; j++)
-            map[i][j] = 2;
+            map[i][j] = 1;
     /*map[24+x][240+y] = 1;
     map[24+x][250+y] = 1;
     map[24+x][260+y] = 1;
